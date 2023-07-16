@@ -26,14 +26,15 @@
                     var workbook = XLSX.read(new Uint8Array(buffer), { type: 'array' });
                     var sheetName = workbook.SheetNames[0];
                     var worksheet = workbook.Sheets[sheetName];
-                    var jsonData = {};
+                    var jsonData = [];
                     var rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
                     for (var i = 1; i < rows.length; i++) {
                         var row = rows[i];
                         var date = XLSX.SSF.format('yyyy-mm-dd', row[0]);
                         var event = row[1];
                         var comment = row[2] || '';
-                        jsonData[date] = {
+                        var dataObj = {
+                            date: date,
                             type: event,
                             comment: comment
                         };
@@ -43,12 +44,13 @@
                                 var times = timePeriod.split('-');
                                 var startTime = turnNum(times[0].trim());
                                 var endTime = turnNum(times[1].trim());
-                                jsonData[date]['period' + (j - 2)] = {
+                                dataObj['period' + (j - 2)] = {
                                     startTime: startTime,
                                     endTime: endTime
                                 };
                             }
                         }
+                        jsonData.push(dataObj);
                     }
                     var jsonDataString = JSON.stringify(jsonData, null, 2);
                     document.getElementById('parsedData').textContent = jsonDataString;
