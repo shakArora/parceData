@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample HTML with Parsing Data</title>
+    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>Here's the JSON code for the LPMS schedule</h1>
+
+    <script>
+        function turnNum(s) {
+            s = s.split(":");
+            if (parseInt(s[0]) <= 5) {
+                s[0] = parseInt(s[0]) + 12;
+            }
+            return parseInt(s[0]) * 60 * 60 + parseInt(s[1]) * 60;
+        }
+
+        function parseData() {
+            // Load the workbook
+            var workbook = XLSX.readFile("data.xlsx");
+
+            // Select the first sheet
+            var sheetName = workbook.SheetNames[0];
+            var worksheet = workbook.Sheets[sheetName];
+
+            // Iterate over the rows starting from the second row
+            var jsonData = {};
+            var rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+            for (var i = 1; i < rows.length; i++) {
+                var row = rows[i];
+                var date = XLSX.SSF.format("yyyy-mm-dd", row[0]);
+                var event = row[1];
+                var comment = row[2] || "";
+
+                jsonData[date] = {
+                    type: event,
+                    comment: comment
+                };
+
+                // Iterate over the remaining columns to get the time periods
+                for (var j = 3; j < row.length; j++) {
+                    var timePeriod = row[j];
+                    if (timePeriod) {
+                        var times = timePeriod.split("-");
+                        var startTime = turnNum(times[0].trim());
+                        var endTime = turnNum(times[1].trim());
+                        jsonData[date]["period" + (j - 2)] = {
+                            startTime: startTime,
+                            endTime: endTime
+                        };
+                    }
+                }
+            }
+
+            // Display the parsed data on the web page
+            var jsonDataString = JSON.stringify(jsonData, null, 2);
+            var preElement = document.createElement("pre");
+            preElement.textContent = jsonDataString;
+            document.body.appendChild(preElement);
+        }
+
+        // Call the parseData function
+        parseData();
+    </script>
+</body>
+</html>
