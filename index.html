@@ -2,10 +2,11 @@
 <html>
 <head>
     <title>Sample HTML with Parsing Data</title>
-    <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 </head>
 <body>
-    <h1>Here's the JSON code for the LPMS schedule</h1>
+    <h1>Sample HTML with Parsing Data</h1>
+
+    <pre id="parsedData"></pre>
 
     <script>
         function turnNum(s) {
@@ -17,14 +18,9 @@
         }
 
         function parseData() {
-            // Load the workbook
             var workbook = XLSX.readFile("data.xlsx");
-
-            // Select the first sheet
             var sheetName = workbook.SheetNames[0];
             var worksheet = workbook.Sheets[sheetName];
-
-            // Iterate over the rows starting from the second row
             var jsonData = {};
             var rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             for (var i = 1; i < rows.length; i++) {
@@ -32,13 +28,10 @@
                 var date = XLSX.SSF.format("yyyy-mm-dd", row[0]);
                 var event = row[1];
                 var comment = row[2] || "";
-
                 jsonData[date] = {
                     type: event,
                     comment: comment
                 };
-
-                // Iterate over the remaining columns to get the time periods
                 for (var j = 3; j < row.length; j++) {
                     var timePeriod = row[j];
                     if (timePeriod) {
@@ -52,15 +45,10 @@
                     }
                 }
             }
-
-            // Display the parsed data on the web page
             var jsonDataString = JSON.stringify(jsonData, null, 2);
-            var preElement = document.createElement("pre");
-            preElement.textContent = jsonDataString;
-            document.body.appendChild(preElement);
+            document.getElementById("parsedData").textContent = jsonDataString;
         }
 
-        // Call the parseData function
         parseData();
     </script>
 </body>
